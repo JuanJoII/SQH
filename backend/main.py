@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from router import auth, profiles, posts
+from router import auth, profiles, posts, test
 
 app = FastAPI(
     title="API de Saberes que Habitan",
@@ -21,3 +21,4 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(profiles.router)
 app.include_router(posts.router)
+app.include_router(test.router)
