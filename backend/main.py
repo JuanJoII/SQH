@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from router import auth, profiles, posts, test
+from router import auth, profiles, posts, test, avatar
 
 app = FastAPI(
     title="API de Saberes que Habitan",
@@ -22,3 +22,4 @@ app.include_router(auth.router)
 app.include_router(profiles.router)
 app.include_router(posts.router)
 app.include_router(test.router)
+app.include_router(avatar.router)

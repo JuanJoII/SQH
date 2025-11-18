@@ -1,7 +1,13 @@
 from pydantic import BaseModel
-from typing import Literal, Dict
+from typing import Literal, Dict, Optional
 
 AnswerOptions = Literal['a', 'b', 'c', 'd']
+
+class UnlockedAvatar(BaseModel):
+    id: str
+    name: str
+    image_url: str
+    is_new: bool = True
 
 class TestAnswerModel(BaseModel):
     q1: AnswerOptions
@@ -19,3 +25,5 @@ class TestResultResponse(BaseModel):
     emoji: str
     is_tie: bool
     all_scores: Dict[str, int]
+    unlocked_avatar: Optional[UnlockedAvatar] = None
+    recomended_tags: Optional[list[str]] = None

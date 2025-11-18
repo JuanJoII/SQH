@@ -14,14 +14,38 @@ def take_test(
     user_id = str(current_user.id)
 
     if supabase.table("user_test_results").select("id").eq("user_id", user_id).limit(1).execute().data:
-        raise HTTPException(403, "Ya completaste el test. Usa /test/reset.")
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Ya completaste el test.")
 
     result = calculate_affinity(answers)
+    affinity = result["main_affinity"].split(" + ")[0]
+
+    avatar = supabase.table("avatars")\
+        .select("id, name, image_url")\
+        .eq("affinity", affinity)\
+        .limit(1)\
+        .execute()
+
+    if not avatar.data:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Avatar no encontrado")
+
+    avatar_data = avatar.data[0]
 
     supabase.table("user_test_results").insert({
         "user_id": user_id,
         "result": result
     }).execute()
+
+    supabase.table("unlocked_avatars").insert({
+        "user_id": user_id,
+        "avatar_id": avatar_data["id"]
+    }).execute()
+
+    result["unlocked_avatar"] = {
+        "id": avatar_data["id"],
+        "name": avatar_data["name"],
+        "image_url": avatar_data["image_url"],
+        "is_new": True
+    }
 
     return result
 
