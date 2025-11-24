@@ -53,3 +53,27 @@ def update_profile(data:UpdateProfileModel, current_user = Depends(get_current_u
         .execute()
 
     return {"message": "Perfil actualizado", "profile": response.data[0]}
+
+# router/profile.py (o donde tengas los perfiles)
+
+@router.get("/by-id/{user_id}", response_model=PublicProfileResponse)
+def get_profile_by_user_id(user_id: str):
+    """
+    Obtiene el perfil de un usuario por su user_id (UUID)
+    """
+    try:
+        response = supabase.table("profiles")\
+            .select("username, full_name, bio, phone, profile_picture_url, social_links, created_at")\
+            .eq("id", user_id)\
+            .single()\
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        return response.data
+    
+    except Exception as e:
+        if "PGRST116" in str(e):
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=500, detail="Error interno")

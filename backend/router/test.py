@@ -49,28 +49,17 @@ def take_test(
 
     return result
 
-@router.delete("/reset", status_code=status.HTTP_200_OK)
-def reset_test(current_user = Depends(get_current_user)):
-    user_id = str(current_user.id)
+@router.delete("/reset")
+async def reset_test(current_user = Depends(get_current_user)):
+    user_id = current_user.id
 
-    check = supabase.table("user_test_results")\
-        .select("id")\
-        .eq("user_id", user_id)\
-        .limit(1)\
-        .execute()
+    # 1. Borrar el resultado del test
+    supabase.table("user_test_results").delete().eq("user_id", user_id).execute()
 
-    if not check.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No tienes un test completado para resetear."
-        )
+    # 2. BORRAR TAMBIÉN LOS AVATARES DESBLOQUEADOS (ESTO ES LO QUE FALTABA)
+    supabase.table("unlocked_avatars").delete().eq("user_id", user_id).execute()
 
-    supabase.table("user_test_results")\
-        .delete()\
-        .eq("user_id", user_id)\
-        .execute()
-
-    return {"message": "Test reseteado con éxito. ¡Puedes volver a tomarlo!"}
+    return {"message": "Test reiniciado correctamente"}
 
 @router.get("/result", response_model=TestResultResponse)
 def get_test_result(current_user = Depends(get_current_user)):

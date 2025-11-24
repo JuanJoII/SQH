@@ -111,3 +111,43 @@ def delete_post(post_id: str, current_user = Depends(get_current_user)):
         .execute()
     
     return None
+
+@router.get("/{post_id}", response_model=PostResponseModel)
+def get_post_by_id(post_id: str):
+    try:
+        # 1. Obtener el post completo
+        post_resp = supabase.table("posts")\
+            .select("*")\
+            .eq("id", post_id)\
+            .single()\
+            .execute()
+
+        if not post_resp.data:
+            raise HTTPException(status_code=404, detail="Post no encontrado")
+
+        post = post_resp.data
+
+        # 2. Obtener el perfil usando el UUID que está en post["user_id"]
+        # ¡¡ESTA ES LA CLAVE: profiles.id = posts.user_id !!
+        profile_resp = supabase.table("profiles")\
+            .select("username, full_name, profile_picture_url")\
+            .eq("id", post["user_id"])\
+            .single()\
+            .execute()
+
+        profile = profile_resp.data or {
+            "username": "anónimo",
+            "full_name": None,
+            "profile_picture_url": None
+        }
+
+        return {
+            **post,
+            "profiles": profile
+        }
+
+    except Exception as e:
+        if "PGRST116" in str(e):
+            raise HTTPException(status_code=404, detail="Post o perfil no encontrado")
+        print("ERROR:", e)
+        raise HTTPException(status_code=500, detail="Error interno")
